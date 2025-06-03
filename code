@@ -1,0 +1,110 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define SIZE 5
+#define SHIPS 3
+
+void inicializarTabuleiro(char tab[][SIZE]) {
+    for (int i = 0; i < SIZE; i++)
+        for (int j = 0; j < SIZE; j++)
+            tab[i][j] = '~';  // Água
+}
+
+void imprimirTabuleiro(char tab[][SIZE]) {
+    printf("  ");
+    for (int i = 0; i < SIZE; i++)
+        printf("%d ", i);
+    printf("\n");
+
+    for (int i = 0; i < SIZE; i++) {
+        printf("%d ", i);
+        for (int j = 0; j < SIZE; j++)
+            printf("%c ", tab[i][j]);
+        printf("\n");
+    }
+}
+
+void posicionarNavios(int navios[][2]) {
+    int count = 0;
+    while (count < SHIPS) {
+        int x = rand() % SIZE;
+        int y = rand() % SIZE;
+
+        // Verifica se já existe navio nessa posição
+        int repetido = 0;
+        for (int i = 0; i < count; i++) {
+            if (navios[i][0] == x && navios[i][1] == y) {
+                repetido = 1;
+                break;
+            }
+        }
+
+        if (!repetido) {
+            navios[count][0] = x;
+            navios[count][1] = y;
+            count++;
+        }
+    }
+}
+
+int verificarAcerto(int x, int y, int navios[][2], int naviosAtendidos[]) {
+    for (int i = 0; i < SHIPS; i++) {
+        if (navios[i][0] == x && navios[i][1] == y) {
+            if (naviosAtendidos[i] == 0) {
+                naviosAtendidos[i] = 1;
+                return 1; // Acertou navio não atingido antes
+            } else {
+                return 0; // Já tinha acertado esse navio
+            }
+        }
+    }
+    return 0; // Errou
+}
+
+int main() {
+    char tabuleiro[SIZE][SIZE];
+    int navios[SHIPS][2];
+    int naviosAtendidos[SHIPS] = {0};
+    int acertos = 0;
+
+    srand(time(NULL));
+
+    inicializarTabuleiro(tabuleiro);
+    posicionarNavios(navios);
+
+    printf("=== Jogo Batalha Naval ===\n");
+    printf("Tabuleiro: %dx%d, %d navios escondidos.\n", SIZE, SIZE, SHIPS);
+
+    while (acertos < SHIPS) {
+        imprimirTabuleiro(tabuleiro);
+
+        int linha, coluna;
+        printf("Digite as coordenadas para atacar (linha coluna): ");
+        scanf("%d %d", &linha, &coluna);
+
+        if (linha < 0 || linha >= SIZE || coluna < 0 || coluna >= SIZE) {
+            printf("Coordenadas invalidas! Tente novamente.\n");
+            continue;
+        }
+
+        if (tabuleiro[linha][coluna] == 'X' || tabuleiro[linha][coluna] == 'O') {
+            printf("Você já tentou essa posição. Escolha outra.\n");
+            continue;
+        }
+
+        if (verificarAcerto(linha, coluna, navios, naviosAtendidos)) {
+            printf("Acertou um navio!\n");
+            tabuleiro[linha][coluna] = 'X';
+            acertos++;
+        } else {
+            printf("Errou!\n");
+            tabuleiro[linha][coluna] = 'O';
+        }
+    }
+
+    printf("Parabéns! Você afundou todos os navios!\n");
+    imprimirTabuleiro(tabuleiro);
+
+    return 0;
+}
